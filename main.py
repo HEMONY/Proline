@@ -1,4 +1,3 @@
-#MOHAMED☻🇸🇩:
 # -*- coding: utf-8 -*-
 from flask import Flask, request, abort
 from linebot import LineBotApi, WebhookHandler
@@ -6,7 +5,7 @@ from linebot.exceptions import InvalidSignatureError
 from linebot.models import MessageEvent, TextMessage, TextSendMessage
 from OpenSSL import SSL
 
-app = Flask(name)
+app = Flask(__name__)
 
 # Replace with your Channel Access Token and Channel Secret
 CHANNEL_ACCESS_TOKEN = 'fVkAirq/vXfDBT9BHg2fsbYHaVwM4LaeCoJyM+aqwM7zlyv/qUklne7J63wlGHwHirwsfoUarTU3LfEQfWnRJnmbR+blfUCgWo9mfeDCTKoJ53WRvkOfovqYrf078NpBid4xxSYSISPLafXAj6wTYAdB04t89/1O/w1cDnyilFU='
@@ -64,7 +63,7 @@ def handle_message(event):
             target_user = text.split(' ')[1]
             check_sider(event.reply_token, target_user)
             return
-        elif text.startswith('مساعدة'):
+        elif text.startswith('/مساعدة'):
             commands_list = """
             الأوامر المتاحة:
             طرد [user_id]
@@ -78,20 +77,21 @@ def handle_message(event):
             """
             reply_message = commands_list.strip()
         else:
-            reply_message = 'أمر غير صحيح. اكتب /مساعدة لعرض الأوامر المتاحة.'
+            reply_message = 'أمر غير صحيح. اكتب مساعدة لعرض الأوامر المتاحة.'
     else:
         reply_message = 'ليس لديك الصلاحية لاستخدام هذا البوت.'
 
     line_bot_api.reply_message(event.reply_token, TextSendMessage(text=reply_message))
 
 def kick_user(user_id):
+    # Implement your logic to kick the user
+    # This might involve removing the user from the group or blocking them
     try:
         line_bot_api.kickoutFromGroup(group_id, [user_id])
         return f'تم طرد المستخدم {user_id} من المجموعة.'
     except LineBotApiError as e:
         return f'فشل في طرد المستخدم {user_id}. خطأ: {e.error.message}'
 
-    
 
 def ban_user(user_id):
     BANNED_USERS.add(user_id)
@@ -106,6 +106,7 @@ def unmute_group(group_id):
     MUTED_GROUPS.discard(group_id)
 
 def invite_user(group_id, user_id):
+    # Implement your logic to invite the user to the group
     try:
         line_bot_api.inviteIntoGroup(group_id, [user_id])
         return f'تمت دعوة المستخدم {user_id} إلى المجموعة.'
@@ -119,7 +120,7 @@ def check_sider(reply_token, user_id):
     else:
         reply_message = 'المستخدم غير محظور.'
 
-line_bot_api.reply_message(reply_token, TextSendMessage(text=reply_message))
+    line_bot_api.reply_message(reply_token, TextSendMessage(text=reply_message))
 
-if name == "main":
+if __name__ == "__main__":
     app.run(port=5000, debug=True, ssl_context="adhoc" )
