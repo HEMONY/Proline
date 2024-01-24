@@ -9,8 +9,8 @@ from OpenSSL import SSL
 app = Flask(name)
 
 # Replace with your Channel Access Token and Channel Secret
-CHANNEL_ACCESS_TOKEN = 'pqyKwTqygsQP9iY09jkOsgCpqCDxBAewFVk9H39lYVexRliPmf09qZfsk1O6Ax+sirwsfoUarTU3LfEQfWnRJnmbR+blfUCgWo9mfeDCTKqbOXyeOnilkpskm2haWikX11d5EKetaZjEOBUu5YRMbAdB04t89/1O/w1cDnyilFU='
-CHANNEL_SECRET = '80b1ac07fa8de24a8e54816e54779443'
+CHANNEL_ACCESS_TOKEN = 'fVkAirq/vXfDBT9BHg2fsbYHaVwM4LaeCoJyM+aqwM7zlyv/qUklne7J63wlGHwHirwsfoUarTU3LfEQfWnRJnmbR+blfUCgWo9mfeDCTKoJ53WRvkOfovqYrf078NpBid4xxSYSISPLafXAj6wTYAdB04t89/1O/w1cDnyilFU='
+CHANNEL_SECRET = '7cfe5a2814d428ec51b2275a3704f9a8'
 
 line_bot_api = LineBotApi(CHANNEL_ACCESS_TOKEN)
 handler = WebhookHandler(CHANNEL_SECRET)
@@ -38,43 +38,43 @@ def handle_message(event):
     text = event.message.text.strip().lower()
 
     if user_id == ADMIN_USER_ID:
-        if text.startswith('/طرد'):
+        if text.startswith('طرد'):
             target_user = text.split(' ')[1]
             kick_user(target_user)
             reply_message = f'تم طرد المستخدم {target_user}.'
-        elif text.startswith('/حظر'):
+        elif text.startswith('حظر'):
             target_user = text.split(' ')[1]
             ban_user(target_user)
             reply_message = f'تم حظر المستخدم {target_user}.'
-        elif text.startswith('/فك الحظر'):
+        elif text.startswith('فك الحظر'):
             target_user = text.split(' ')[1]
             unban_user(target_user)
             reply_message = f'تم فك حظر المستخدم {target_user}.'
-        elif text.startswith('/كتم'):
+        elif text.startswith('كتم'):
             mute_group(event.source.group_id)
             reply_message = 'تم كتم المجموعة.'
-        elif text.startswith('/إلغاء الكتم'):
+        elif text.startswith('إلغاء الكتم'):
             unmute_group(event.source.group_id)
             reply_message = 'تم إلغاء كتم المجموعة.'
-        elif text.startswith('/دعوة'):
+        elif text.startswith('دعوة'):
             target_user = text.split(' ')[1]
             invite_user(event.source.group_id, target_user)
             reply_message = f'دعوة المستخدم {target_user} إلى المجموعة.'
-        elif text.startswith('/التحقق'):
+        elif text.startswith('التحقق'):
             target_user = text.split(' ')[1]
             check_sider(event.reply_token, target_user)
             return
-        elif text.startswith('/مساعدة'):
+        elif text.startswith('مساعدة'):
             commands_list = """
             الأوامر المتاحة:
-            /طرد [user_id]
-            /حظر [user_id]
-            /فك الحظر [user_id]
-            /كتم
-            /إلغاء الكتم
-            /دعوة [user_id]
-            /التحقق [user_id]
-            /مساعدة
+            طرد [user_id]
+            حظر [user_id]
+            فك الحظر [user_id]
+            كتم
+            إلغاء الكتم
+            دعوة [user_id]
+            التحقق [user_id]
+            مساعدة
             """
             reply_message = commands_list.strip()
         else:
