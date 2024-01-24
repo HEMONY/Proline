@@ -1,17 +1,31 @@
 # -*- coding: utf-8 -*-
 import os
 import sys
+from argparse import ArgumentParser
+
 from flask import Flask, request, abort
-from linebot import LineBotApi, WebhookHandler
+from linebot import LineBotApi, WebhookHandler, WebhookParser
 from linebot.exceptions import InvalidSignatureError
 from linebot.models import MessageEvent, TextMessage, TextSendMessage
-from OpenSSL import SSL
+
 
 app = Flask(__name__)
 
 # Replace with your Channel Access Token and Channel Secret
-CHANNEL_ACCESS_TOKEN = 'fVkAirq/vXfDBT9BHg2fsbYHaVwM4LaeCoJyM+aqwM7zlyv/qUklne7J63wlGHwHirwsfoUarTU3LfEQfWnRJnmbR+blfUCgWo9mfeDCTKoJ53WRvkOfovqYrf078NpBid4xxSYSISPLafXAj6wTYAdB04t89/1O/w1cDnyilFU='
-CHANNEL_SECRET = '7cfe5a2814d428ec51b2275a3704f9a8'
+CHANNEL_ACCESS_TOKEN = os.getenv('fVkAirq/vXfDBT9BHg2fsbYHaVwM4LaeCoJyM+aqwM7zlyv/qUklne7J63wlGHwHirwsfoUarTU3LfEQfWnRJnmbR+blfUCgWo9mfeDCTKoJ53WRvkOfovqYrf078NpBid4xxSYSISPLafXAj6wTYAdB04t89/1O/w1cDnyilFU=')
+CHANNEL_SECRET = os.getenv('7cfe5a2814d428ec51b2275a3704f9a8')
+if channel_secret is None:
+    print('Specify LINE_CHANNEL_SECRET as environment variable.')
+    sys.exit(1)
+if channel_access_token is None:
+    print('Specify LINE_CHANNEL_ACCESS_TOKEN as environment variable.')
+    sys.exit(1)
+
+parser = WebhookParser(channel_secret)
+
+configuration = Configuration(
+    access_token=channel_access_token
+)
 
 line_bot_api = LineBotApi(CHANNEL_ACCESS_TOKEN)
 handler = WebhookHandler(CHANNEL_SECRET)
@@ -19,7 +33,7 @@ handler = WebhookHandler(CHANNEL_SECRET)
 # In-memory storage for banned user IDs and muted group IDs
 BANNED_USERS = set()
 MUTED_GROUPS = set()
-ADMIN_USER_ID = 'hemo__5555'
+ADMIN_USER_ID = ['hemo__5555', 'tarek2016r']
 
 
 @app.route("/callback", methods=['POST'])
@@ -44,7 +58,7 @@ def handle_message(event):
     user_id = event.source.user_id
     text = event.message.text.strip().lower()
 
-    if user_id == ADMIN_USER_ID:
+    if user_id in ADMIN_USER_ID:
         if text.startswith('طرد'):
             target_user = text.split(' ')[1]
             kick_user(target_user)
@@ -131,4 +145,11 @@ def check_sider(reply_token, user_id):
     line_bot_api.reply_message(reply_token, TextSendMessage(text=reply_message))
 
 if __name__ == "__main__":
-    app.run()
+    arg_parser = ArgumentParser(
+        usage='Usage: python ' + __file__ + ' [--port <port>] [--help]'
+    )
+    arg_parser.add_argument('-p', '--port', type=int, default=8000, help='port')
+    arg_parser.add_argument('-d', '--debug', default=False, help='debug')
+    options = arg_parser.parse_args()
+
+    app.run(debug=options.debug, port=options.port)
