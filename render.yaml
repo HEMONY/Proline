@@ -2,9 +2,11 @@
 
 services:
   - name: your-service-name
-    buildCommand: pip install -r requirements.txt
-    startCommand: python main.py
-    env: python=3.8
+  repo: https://github.com/HEMONY/Proline.git
+    
+  buildCommand: pip install -r requirements.txt
+  startCommand: python main.py
+  env: python=3.8
     
 #services:
 - type: web
