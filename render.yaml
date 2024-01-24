@@ -7,7 +7,7 @@ services:
     env: python=3.8
     
 #services:
-#- type: web
+- type: web
 #  name: line-bot-python-flask
 #  env: python
 #  repo: https://github.com/line/line-bot-sdk-python.git # buildCommand: pip install gunicorn -r requirements.txt
