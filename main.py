@@ -1,4 +1,6 @@
 # -*- coding: utf-8 -*-
+import os
+import sys
 from flask import Flask, request, abort
 from linebot import LineBotApi, WebhookHandler
 from linebot.exceptions import InvalidSignatureError
@@ -23,6 +25,7 @@ ADMIN_USER_ID = 'hemo__5555'
 def callback():
     signature = request.headers['X-Line-Signature']
     body = request.get_data(as_text=True)
+    app.logger.info("Request body: " + body)
 
     try:
         handler.handle(body, signature)
@@ -123,4 +126,5 @@ def check_sider(reply_token, user_id):
     line_bot_api.reply_message(reply_token, TextSendMessage(text=reply_message))
 
 if __name__ == "__main__":
-    app.run(port=5000, debug=True, ssl_context="adhoc" )
+    port = int(os.getenv("PORT", 5000))
+    app.run(host="0.0.0.0", port=port)
