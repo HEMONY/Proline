@@ -8,9 +8,9 @@ services:
     
 #services:
 - type: web
-#  name: line-bot-python-flask
+  name: line-bot-python-flask
 #  env: python
-#  repo: https://github.com/line/line-bot-sdk-python.git # buildCommand: pip install gunicorn -r requirements.txt
+  repo: https://github.com/HEMONY/Proline.git # buildCommand: pip install gunicorn -r requirements.txt
 #  startCommand: main:app
   plan: free
   autoDeploy: false
