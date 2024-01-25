@@ -12,20 +12,18 @@ from linebot.models import MessageEvent, TextMessage, TextSendMessage
 app = Flask(__name__)
 
 # Replace with your Channel Access Token and Channel Secret
-CHANNEL_ACCESS_TOKEN = os.getenv('fVkAirq/vXfDBT9BHg2fsbYHaVwM4LaeCoJyM+aqwM7zlyv/qUklne7J63wlGHwHirwsfoUarTU3LfEQfWnRJnmbR+blfUCgWo9mfeDCTKoJ53WRvkOfovqYrf078NpBid4xxSYSISPLafXAj6wTYAdB04t89/1O/w1cDnyilFU=')
-CHANNEL_SECRET = os.getenv('7cfe5a2814d428ec51b2275a3704f9a8')
-if channel_secret is None:
+CHANNEL_ACCESS_TOKEN = 'y7N/uzj6Lv+TWv1WtdkNcDAzs1OVDKr14JkRJkfFV8iuJ+uzN9rh7BBSgMHsmIEtirwsfoUarTU3LfEQfWnRJnmbR+blfUCgWo9mfeDCTKo4wG6LgFrxVo9slTLQwx82LVPP6UTDuPLXLbd6CSobsgdB04t89/1O/w1cDnyilFU='
+CHANNEL_SECRET = 'e8af879d53b27d481c43e3598dc513ee'
+if CHANNEL_SECRET is None:
     print('Specify LINE_CHANNEL_SECRET as environment variable.')
     sys.exit(1)
-if channel_access_token is None:
+if CHANNEL_ACCESS_TOKEN is None:
     print('Specify LINE_CHANNEL_ACCESS_TOKEN as environment variable.')
     sys.exit(1)
 
-parser = WebhookParser(channel_secret)
+parser = WebhookParser(CHANNEL_SECRET)
 
-configuration = Configuration(
-    access_token=channel_access_token
-)
+
 
 line_bot_api = LineBotApi(CHANNEL_ACCESS_TOKEN)
 handler = WebhookHandler(CHANNEL_SECRET)
