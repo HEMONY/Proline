@@ -90,9 +90,11 @@ def handle_message(event):
             """
             reply_message = commands_list.strip()
         else:
-            reply_message = 'Invalid command. Type "help" to view available commands.'
+            pass
+            #reply_message = 'Invalid command. Type "help" to view available commands.'
     else:
-        reply_message = 'You do not have permission to use this bot.'
+        pass
+        #reply_message = 'You do not have permission to use this bot.'
 
     line_bot_api.reply_message(event.reply_token, TextSendMessage(text=reply_message))
 
