@@ -22,7 +22,7 @@ handler = WebhookHandler(CHANNEL_SECRET)
 # In-memory storage for banned user IDs and muted group IDs
 BANNED_USERS = set()
 MUTED_GROUPS = set()
-ADMIN_USER_ID = ['hemo__5555', 'tarek2016r']
+ADMIN_USER_ID = ['hemo__5555', 'tarek2016r', 'U72530e2b27b8c118a146490740cb77b8']
 
 @app.route("/callback", methods=['POST'])
 def callback():
