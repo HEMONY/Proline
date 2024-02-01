@@ -2,7 +2,7 @@ services:
 - type: web
   name: saqr
   env: python
-  repo: https://github.com/line/line-bot-sdk-python.git
+  repo: https://github.com/HEMONY/Proline.git
   buildCommand: pip install gunicorn -r requirements.txt
   startCommand: gunicorn main:app
   plan: free
