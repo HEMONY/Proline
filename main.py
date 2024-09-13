@@ -9,8 +9,8 @@ import os
 app = Flask(__name__)
 
 # Replace with your Channel Access Token and Channel Secret
-CHANNEL_ACCESS_TOKEN = os.getenv("LINE_CHANNEL_ACCESS_TOKEN", None)
-CHANNEL_SECRET = os.getenv("LINE_CHANNEL_SECRET", None)
+CHANNEL_ACCESS_TOKEN = "41lmIdGnP32N0MWpuVJXr7aTocMO7hasTb9+fdUofzl6PTsT/FrGfEiRZrfDUNYkirwsfoUarTU3LfEQfWnRJnmbR+blfUCgWo9mfeDCTKo4BWBBw6R3vde0eX/gbPhMOUfqKtnGMrrnxgbGGD+3owdB04t89/1O/w1cDnyilFU="
+CHANNEL_SECRET = "dc70a952e203aae722b4e1d22e62452d"
 
 if CHANNEL_SECRET is None or CHANNEL_ACCESS_TOKEN is None:
     print('Specify LINE_CHANNEL_SECRET and LINE_CHANNEL_ACCESS_TOKEN as environment variables.')
@@ -107,6 +107,8 @@ def handle_message(event):
     elif text.startswith('help'):
         commands_list = """
         Available Commands:
+        - checkread --> لمعرفة من قرا الرسالة
+        - startcall --> لدعوة جميع الاعضاء اثناء الاتصال
         - mentionall --> للاشارة الى جميع من في المجموعة
         - دعوة جميع الاعضاء
         - ban [user_id]--> حظر المستخدم
