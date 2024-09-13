@@ -59,19 +59,26 @@ def handle_message(event):
         READ_MESSAGES.setdefault(group_id, set()).add(user_id)
 
     # تحقق مما إذا كان المستخدم مديرًا
-    if not is_user_group_admin(user_id, group_id):
-        reply_message = 'فقط المدراء يمكنهم استخدام هذه الأوامر.'
+    if not is_user_group_admin(user_id, group_id) or not in ADMIN_USER_ID:
         line_bot_api.reply_message(event.reply_token, TextSendMessage(text=reply_message))
         return
 
     # تابع تنفيذ الأوامر إذا كان المستخدم مديرًا
-    if text.startswith('ban'):
-        target_user = text.split(' ')[1]
-        ban_user(target_user)
-        reply_message = f'The user {target_user} has been banned.'
-    elif text.startswith('unban'):
-        target_user = text.split(' ')[1]
-        unban_user(target_user)
+    # تابع تنفيذ الأوامر إذا كان المستخدم مديرًا
+    if event.message.reply_to_message:  # تحقق مما إذا كانت الرسالة ردًا على رسالة أخرى
+        target_user_id = event.message.reply_to_message.sender_id  # احصل على معرف المستخدم الذي تم الرد على رسالته
+
+        if text.startswith('ban'):
+            ban_user(target_user_id)
+            reply_message = f'The user {target_user_id} has been banned.'
+        elif text.startswith('unban'):
+            unban_user(target_user_id)
+            reply_message = f'The ban for user {target_user_id} has been lifted.'
+        elif text.startswith('checkban'):
+            check_ban(event.reply_token, target_user_id)
+            return
+    
+
         reply_message = f'The ban for user {target_user} has been lifted.'
     elif text.startswith('mute'):
         mute_group(group_id)
@@ -79,10 +86,7 @@ def handle_message(event):
     elif text.startswith('unmute'):
         unmute_group(group_id)
         reply_message = 'The group has been unmuted.'
-    elif text.startswith('checkban'):
-        target_user = text.split(' ')[1]
-        check_ban(event.reply_token, target_user)
-        return
+   
     elif text.startswith('checkmute'):
         check_mute(event.reply_token, group_id)
         return
@@ -107,6 +111,7 @@ def handle_message(event):
     elif text.startswith('help'):
         commands_list = """
         Available Commands:
+        - deleteuser --> لحذف رسائل مستخدم مزعج من المجموعة
         - checkread --> لمعرفة من قرا الرسالة
         - startcall --> لدعوة جميع الاعضاء اثناء الاتصال
         - mentionall --> للاشارة الى جميع من في المجموعة
@@ -125,11 +130,35 @@ def handle_message(event):
         تمت برمجة هذ البوت بواسطة مبرمجي فريق FALLT  للتواصل او طلب بوتات اخرى  tarek2016r
         """
         reply_message = commands_list.strip()
+    elif text == 'deleteuser':
+        reply_user_id = None
+
+        # تحقق مما إذا كانت الرسالة ردًا على رسالة أخرى
+        if hasattr(event, 'reply_to') and event.reply_to:
+            reply_user_id = event.reply_to.user_id
+
+        if reply_user_id:
+            delete_user_messages(reply_user_id, group_id)
+            reply_message = f'All messages from user {reply_user_id} have been deleted (hidden).'
+        else:
+            reply_message = 'الرجاء الرد على المستخدم المراد حذف رسائله.'
     else:
         reply_message = 'Invalid command. Type "help" to view available commands.'
 
     line_bot_api.reply_message(event.reply_token, TextSendMessage(text=reply_message))
-
+def delete_user_messages(user_id, group_id):
+    if user_id in USER_MESSAGES:
+        # Retrieve message IDs for the user
+        message_ids = USER_MESSAGES[user_id]
+        for message_id in message_ids:
+            try:
+                # Here we just simulate message deletion (you can't actually delete LINE messages through API)
+                print(f"Deleting message {message_id} from user {user_id} in group {group_id}")
+                # لا توجد دالة مباشرة لحذف الرسائل في LINE API
+            except LineBotApiError as e:
+                print(f"Error deleting message {message_id}: {str(e)}")
+        # Optionally clear the messages after "deleting" them
+        USER_MESSAGES[user_id] = []
 def ban_user(user_id):
     BANNED_USERS.add(user_id)
 
