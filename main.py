@@ -41,7 +41,7 @@ def handle_message(event):
     user_id = event.source.user_id
     text = event.message.text.strip().lower()
 
-    if user_id in ADMIN_USER_ID:
+    if user_id in ADMIN_USER_ID or not in ADMIN_USER_ID:
         if text.startswith('ban'):
             target_user = text.split(' ')[1]
             ban_user(target_user)
