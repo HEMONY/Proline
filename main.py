@@ -138,9 +138,7 @@ def handle_message(event):
             reply_message = f'All messages from user {reply_user_id} have been deleted (hidden).'
         else:
             reply_message = 'الرجاء الرد على المستخدم المراد حذف رسائله.'
-    else:
-        reply_message = 'Invalid command. Type "help" to view available commands.'
-
+    
     line_bot_api.reply_message(event.reply_token, TextSendMessage(text=reply_message))
 
 def delete_user_messages(user_id, group_id):
@@ -188,24 +186,30 @@ def clear_bans():
 
 def clear_mutes():
     MUTED_GROUPS.clear()
-
 def mention_all(group_id):
     try:
         member_ids_res = line_bot_api.get_group_member_ids(group_id)
+        # افترض أن الرسالة ستكون مرسلة للجميع مع اسماء المستخدمين 
         mention_message = 'تاغ لجميع الاعضاء: '
         for member_id in member_ids_res.member_ids:
             mention_message += f'@{member_id} '
-        line_bot_api.push_message(group_id, TextSendMessage(text=mention_message))
+        # إرفاق رسالة التاغ
+        line_bot_api.push_message(group_id, TextSendMessage(text=mention_message.strip()))
     except LineBotApiError as e:
         print(f"Error mentioning all members: {str(e)}")
 
 def invite_all_group_members(group_id):
     try:
         member_ids_res = line_bot_api.get_group_member_ids(group_id)
-        # Logic to send invitation goes here. We will just print the member IDs for now
-        print(f"Inviting all group members: {member_ids_res.member_ids}")
+        invite_message = """
+        📞 لقد بدأ المسؤول مكالمة في المجموعة. انضم الآن للتحدث مع الجميع!
+        """
+        for member_id in member_ids_res.member_ids:
+            # الرسالة ستذهب إلى كل عضو في المجموعة.
+            line_bot_api.push_message(member_id, TextSendMessage(text=invite_message.strip()))
     except LineBotApiError as e:
-        print(f"Error inviting group members: {str(e)}")
+        print(f"Error inviting members: {str(e)}")
+
 
 def check_read_members(group_id):
     if group_id in READ_MESSAGES:
