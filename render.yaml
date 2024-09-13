@@ -8,11 +8,11 @@ services:
   plan: free
   autoDeploy: false
   envVars:
-  - key: 'kESqZM8TLwGUP4/nSnneUsEUymNkoNrLADVd6xBpFAlzKcAwSiU2FTn1FPtmzra+irwsfoUarTU3LfEQfWnRJnmbR+blfUCgWo9mfeDCTKqcrX2zUCaK4DLEUlSX9nENIAHcpuzRSRKwRo8NcYqItgdB04t89/1O/w1cDnyilFU='
+  - key: '41lmIdGnP32N0MWpuVJXr7aTocMO7hasTb9+fdUofzl6PTsT/FrGfEiRZrfDUNYkirwsfoUarTU3LfEQfWnRJnmbR+blfUCgWo9mfeDCTKo4BWBBw6R3vde0eX/gbPhMOUfqKtnGMrrnxgbGGD+3owdB04t89/1O/w1cDnyilFU='
    
     #value: 'kESqZM8TLwGUP4/nSnneUsEUymNkoNrLADVd6xBpFAlzKcAwSiU2FTn1FPtmzra+irwsfoUarTU3LfEQfWnRJnmbR+blfUCgWo9mfeDCTKqcrX2zUCaK4DLEUlSX9nENIAHcpuzRSRKwRo8NcYqItgdB04t89/1O/w1cDnyilFU='
     #sync: false
-  - key: '75a3936b98a8ee7d738ffe425cd0fe23'
+  - key: 'dc70a952e203aae722b4e1d22e62452d'
     #value: '75a3936b98a8ee7d738ffe425cd0fe23'
     #sync: false
 # - type: web
