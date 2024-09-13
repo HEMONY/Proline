@@ -59,10 +59,7 @@ def handle_message(event):
     if group_id:
         READ_MESSAGES.setdefault(group_id, set()).add(user_id)
 
-    # تحقق مما إذا كان المستخدم مديرًا
-    if not is_user_group_admin(user_id, group_id) or user_id not in ADMIN_USER_ID:
-        line_bot_api.reply_message(event.reply_token, TextSendMessage(text=reply_message))
-        return
+    
 
     # تابع تنفيذ الأوامر إذا كان المستخدم مديرًا
     # تابع تنفيذ الأوامر إذا كان المستخدم مديرًا
