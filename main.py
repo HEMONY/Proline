@@ -28,6 +28,7 @@ BANNED_USERS = set()
 MUTED_GROUPS = set()
 ADMIN_USER_ID = ['hemo__5555', 'tarek2016r', 'U72530e2b27b8c118a146490740cb77b8']
 READ_MESSAGES = {}
+USER_MESSAGES = {}
 @app.route("/callback", methods=['POST'])  
 def callback():
     signature = request.headers['X-Line-Signature']
@@ -59,7 +60,7 @@ def handle_message(event):
         READ_MESSAGES.setdefault(group_id, set()).add(user_id)
 
     # تحقق مما إذا كان المستخدم مديرًا
-    if not is_user_group_admin(user_id, group_id) or not in ADMIN_USER_ID:
+    if not is_user_group_admin(user_id, group_id) or user_id not in ADMIN_USER_ID:
         line_bot_api.reply_message(event.reply_token, TextSendMessage(text=reply_message))
         return
 
@@ -79,7 +80,6 @@ def handle_message(event):
             return
     
 
-        reply_message = f'The ban for user {target_user} has been lifted.'
     elif text.startswith('mute'):
         mute_group(group_id)
         reply_message = 'The group has been muted.'
