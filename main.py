@@ -28,7 +28,7 @@ BANNED_USERS = set()
 MUTED_GROUPS = set()
 ADMIN_USER_ID = ['hemo__5555', 'tarek2016r', 'U72530e2b27b8c118a146490740cb77b8']
 READ_MESSAGES = {}
-@app.route("/callback", methods=['POST'])
+@app.route("/callback", methods=['POST'])  
 def callback():
     signature = request.headers['X-Line-Signature']
     body = request.get_data(as_text=True)
@@ -40,6 +40,14 @@ def callback():
 
     return 'OK'
 
+def is_user_group_admin(user_id, group_id):
+    try:
+        # احصل على معلومات العضو
+        profile = line_bot_api.get_group_member_profile(group_id, user_id)
+        return profile.display_name in ADMIN_USER_ID  # تحقق من أن المستخدم هو أحد المدراء
+    except LineBotApiError:
+        return False
+
 # Add member who reads the message to a list
 @handler.add(MessageEvent, message=TextMessage)
 def handle_message(event):
@@ -50,50 +58,75 @@ def handle_message(event):
     if group_id:
         READ_MESSAGES.setdefault(group_id, set()).add(user_id)
 
-    if user_id in ADMIN_USER_ID:
-        if text.startswith('ban'):
-            target_user = text.split(' ')[1]
-            ban_user(target_user)
-            reply_message = f'The user {target_user} has been banned.'
-        elif text.startswith('unban'):
-            target_user = text.split(' ')[1]
-            unban_user(target_user)
-            reply_message = f'The ban for user {target_user} has been lifted.'
-        elif text.startswith('mute'):
-            mute_group(group_id)
-            reply_message = 'The group has been muted.'
-        elif text.startswith('unmute'):
-            unmute_group(group_id)
-            reply_message = 'The group has been unmuted.'
-        elif text.startswith('checkban'):
-            target_user = text.split(' ')[1]
-            check_ban(event.reply_token, target_user)
-            return
-        elif text.startswith('checkmute'):
-            check_mute(event.reply_token, group_id)
-            return
-        elif text.startswith('listbans'):
-            reply_message = f'List of banned users: {", ".join(BANNED_USERS)}'
-        elif text.startswith('listmutes'):
-            reply_message = f'List of muted groups: {", ".join(MUTED_GROUPS)}'
-        elif text.startswith('clearbans'):
-            clear_bans()
-            reply_message = 'All bans have been cleared.'
-        elif text.startswith('clearmutes'):
-            clear_mutes()
-            reply_message = 'All mutes have been cleared.'
-        elif text == 'mentionall':
-            mention_all(group_id)
-            reply_message = 'All members have been mentioned.'
-        elif text == 'startcall':
-            invite_all_group_members(group_id)
-            reply_message = 'Invitations sent to all group members.'
-        elif text == 'checkread':
-            reply_message = check_read_members(group_id)
-        else:
-            reply_message = 'Invalid command. Type "help" to view available commands.'
-
+    # تحقق مما إذا كان المستخدم مديرًا
+    if not is_user_group_admin(user_id, group_id):
+        reply_message = 'فقط المدراء يمكنهم استخدام هذه الأوامر.'
         line_bot_api.reply_message(event.reply_token, TextSendMessage(text=reply_message))
+        return
+
+    # تابع تنفيذ الأوامر إذا كان المستخدم مديرًا
+    if text.startswith('ban'):
+        target_user = text.split(' ')[1]
+        ban_user(target_user)
+        reply_message = f'The user {target_user} has been banned.'
+    elif text.startswith('unban'):
+        target_user = text.split(' ')[1]
+        unban_user(target_user)
+        reply_message = f'The ban for user {target_user} has been lifted.'
+    elif text.startswith('mute'):
+        mute_group(group_id)
+        reply_message = 'The group has been muted.'
+    elif text.startswith('unmute'):
+        unmute_group(group_id)
+        reply_message = 'The group has been unmuted.'
+    elif text.startswith('checkban'):
+        target_user = text.split(' ')[1]
+        check_ban(event.reply_token, target_user)
+        return
+    elif text.startswith('checkmute'):
+        check_mute(event.reply_token, group_id)
+        return
+    elif text.startswith('listbans'):
+        reply_message = f'List of banned users: {", ".join(BANNED_USERS)}'
+    elif text.startswith('listmutes'):
+        reply_message = f'List of muted groups: {", ".join(MUTED_GROUPS)}'
+    elif text.startswith('clearbans'):
+        clear_bans()
+        reply_message = 'All bans have been cleared.'
+    elif text.startswith('clearmutes'):
+        clear_mutes()
+        reply_message = 'All mutes have been cleared.'
+    elif text == 'mentionall':
+        mention_all(group_id)
+        reply_message = 'All members have been mentioned.'
+    elif text == 'startcall':
+        invite_all_group_members(group_id)
+        reply_message = 'Invitations sent to all group members.'
+    elif text == 'checkread':
+        reply_message = check_read_members(group_id)
+    elif text.startswith('help'):
+        commands_list = """
+        Available Commands:
+        - mentionall --> للاشارة الى جميع من في المجموعة
+        - دعوة جميع الاعضاء
+        - ban [user_id]--> حظر المستخدم
+        - unban [user_id]--> رفع الحظر من المستخدم
+        - mute --> كتم 
+        - unmute -->الغا الكتم 
+        - checkban [user_id]--> التاكد هل المستخدم محظور
+        - checkmute -->التاكد من حالة الكتم
+        - listbans --> قائمة المحظورين
+        - listmutes --> قائمة الكتم
+        - clearbans --> مسح المحظورين
+        - clearmutes  --> مسح الكتم
+        - help --> لعرض قائمة الاوامر
+        تمت برمجة هذ البوت بواسطة مبرمجي فريق FALLT  للتواصل او طلب بوتات اخرى  tarek2016r
+        """
+        reply_message = commands_list.strip()
+    else:
+        reply_message = 'Invalid command. Type "help" to view available commands.'
+
+    line_bot_api.reply_message(event.reply_token, TextSendMessage(text=reply_message))
 
 def ban_user(user_id):
     BANNED_USERS.add(user_id)
