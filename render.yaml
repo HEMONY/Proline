@@ -8,11 +8,12 @@ services:
   plan: free
   autoDeploy: false
   envVars:
-  - key:
-    value: 'kESqZM8TLwGUP4/nSnneUsEUymNkoNrLADVd6xBpFAlzKcAwSiU2FTn1FPtmzra+irwsfoUarTU3LfEQfWnRJnmbR+blfUCgWo9mfeDCTKqcrX2zUCaK4DLEUlSX9nENIAHcpuzRSRKwRo8NcYqItgdB04t89/1O/w1cDnyilFU='
+  - key: 'kESqZM8TLwGUP4/nSnneUsEUymNkoNrLADVd6xBpFAlzKcAwSiU2FTn1FPtmzra+irwsfoUarTU3LfEQfWnRJnmbR+blfUCgWo9mfeDCTKqcrX2zUCaK4DLEUlSX9nENIAHcpuzRSRKwRo8NcYqItgdB04t89/1O/w1cDnyilFU='
+   
+    #value: 'kESqZM8TLwGUP4/nSnneUsEUymNkoNrLADVd6xBpFAlzKcAwSiU2FTn1FPtmzra+irwsfoUarTU3LfEQfWnRJnmbR+blfUCgWo9mfeDCTKqcrX2zUCaK4DLEUlSX9nENIAHcpuzRSRKwRo8NcYqItgdB04t89/1O/w1cDnyilFU='
     #sync: false
-  - key: LINE_CHANNEL_SECRET
-    value: '75a3936b98a8ee7d738ffe425cd0fe23'
+  - key: '75a3936b98a8ee7d738ffe425cd0fe23'
+    #value: '75a3936b98a8ee7d738ffe425cd0fe23'
     #sync: false
 # - type: web
 #   name: line-bot-python-flask-with-handler
