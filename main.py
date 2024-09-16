@@ -9,8 +9,8 @@ import os
 app = Flask(__name__)
 
 # Replace with your Channel Access Token and Channel Secret
-CHANNEL_ACCESS_TOKEN = "dK1KMCwKIAc9NioneP5Ys1rrAdD1NtT4JDEOiYoOh4/jF4l2FdYY09PWIqlS5JiWirwsfoUarTU3LfEQfWnRJnmbR+blfUCgWo9mfeDCTKrAnPwVUts200/xWMV+r7WFQrbiUzQqZSuymIXZq5+T0gdB04t89/1O/w1cDnyilFU="
-CHANNEL_SECRET = "c4589609e60e7e783385a9ca635780ee"
+CHANNEL_ACCESS_TOKEN = "Unf0b9ICHqvFgfhblpqW57DPTAJ2jCHnzZcyKEjvKVr1iTg1Ct2mgvBvm/hZCCVGirwsfoUarTU3LfEQfWnRJnmbR+blfUCgWo9mfeDCTKr7aSBad4kEWpESvSS5GcuoljPlHdfp7+CXkfXsxkAimwdB04t89/1O/w1cDnyilFU="
+CHANNEL_SECRET = "5f5fcbbef8fde3cc12ed90bf01642f35"
 
 if CHANNEL_SECRET is None or CHANNEL_ACCESS_TOKEN is None:
     print('Specify LINE_CHANNEL_SECRET and LINE_CHANNEL_ACCESS_TOKEN as environment variables.')
@@ -73,112 +73,135 @@ def handle_leave(event):
 def handle_message(event):
     user_id = event.source.user_id
     text = event.message.text.strip().lower()
-     # جلب معلومات المستخدم
-    user_profile = line_bot_api.get_profile(user_id)
-    display_name = user_profile.display_name
+    
+    # جلب معلومات المستخدم
+    try:
+        user_profile = line_bot_api.get_profile(user_id)
+        display_name = user_profile.display_name
+    except LineBotApiError as e:
+        reply_message = f"خطأ أثناء جلب معلومات المستخدم: {str(e)}"
+        line_bot_api.reply_message(event.reply_token, TextSendMessage(text=reply_message))
+        return
+
     # تخزين المستخدم في قاعدة البيانات
     store_user(user_id, display_name)
 
-    #if user_id in ADMIN_USER_ID:
+    # التحقق من الأوامر
     if text.startswith('getid'):
-            if event.source.type == 'group':
-                if event.message.mention:  # If the user mentions someone
-                    mentioned_user_id = event.message.mention[0].user_id
-                    reply_message = f'The ID of the mentioned user is: {mentioned_user_id}'
-                elif event.message.reply_to_message:  # If the user replies to a message
-                    replied_user_id = event.message.reply_to_message.sender_id
-                    reply_message = f'The ID of the user you replied to is: {replied_user_id}'
-                else:
-                    reply_message = 'Please reply to a user\'s message or mention them to get their ID.'
+        if event.source.type == 'group':
+            if event.message.mention:  # إذا تم ذكر مستخدم
+                mentioned_user_id = event.message.mention[0].user_id
+                reply_message = f"معرف المستخدم المذكور هو: {mentioned_user_id}"
+            elif event.message.reply_to_message:  # إذا كان هناك رد على رسالة
+                replied_user_id = event.message.reply_to_message.sender_id
+                reply_message = f"معرف المستخدم الذي تم الرد عليه هو: {replied_user_id}"
             else:
-                reply_message = 'This command can only be used in groups.'
-    if text.startswith('ban'):
+                reply_message = "يرجى الرد على رسالة المستخدم أو ذكره للحصول على معرفه."
+        else:
+            reply_message = "يمكن استخدام هذا الأمر فقط داخل المجموعات."
+    
+    elif text.startswith('ban'):
         target_user = text.split(' ')[1]
         ban_user(target_user)
-        reply_message = f'The user {target_user} has been banned.'
+        reply_message = f"تم حظر المستخدم {target_user}."
+
     elif text.startswith('unban'):
         target_user = text.split(' ')[1]
         unban_user(target_user)
-        reply_message = f'The ban for user {target_user} has been lifted.'
+        reply_message = f"تم رفع الحظر عن المستخدم {target_user}."
+
     elif text.startswith('mute'):
         mute_group(event.source.group_id)
-        reply_message = 'The group has been muted.'
+        reply_message = "تم كتم المجموعة."
+
     elif text.startswith('unmute'):
         unmute_group(event.source.group_id)
-        reply_message = 'The group has been unmuted.'
+        reply_message = "تم إلغاء الكتم عن المجموعة."
+
     elif text.startswith('checkban'):
         target_user = text.split(' ')[1]
         check_ban(event.reply_token, target_user)
         return
+
     elif text.startswith('checkmute'):
         check_mute(event.reply_token, event.source.group_id)
         return
+
     elif text.startswith('listbans'):
-        reply_message = f'List of banned users: {", ".join(BANNED_USERS)}'
+        reply_message = f"قائمة المستخدمين المحظورين: {', '.join(BANNED_USERS)}"
+
     elif text.startswith('listmutes'):
-        reply_message = f'List of muted groups: {", ".join(MUTED_GROUPS)}'
+        reply_message = f"قائمة المجموعات المكتمة: {', '.join(MUTED_GROUPS)}"
+
     elif text.startswith('clearbans'):
         clear_bans()
-        reply_message = 'All bans have been cleared.'
+        reply_message = "تم مسح جميع الحظورات."
+
     elif text.startswith('clearmutes'):
         clear_mutes()
-        reply_message = 'All mutes have been cleared.'
+        reply_message = "تم مسح جميع حالات الكتم."
+
     elif text.startswith('help'):
         commands_list = """
-        Available Commands:
-            - getid --> لجلب ايدي المستخدم عن طريق الرد عليه
-            - دعوة لجميع الاعضاء في المجموعة عند فتح  مكالمة جماعية.
-            - تاغ لجميع اعضاء المجموعة
-            - ban [user_id]--> حظر المستخدم
-            - unban [user_id]--> رفع الحظر من المستخدم
-            - mute --> كتم 
-            - unmute -->الغا الكتم 
-            - checkban [user_id]--> التاكد هل المستخدم محظور
-            - checkmute -->التاكد من حالة الكتم
-            - listbans --> قائمة المحظورين
-            - listmutes --> قائمة الكتم
-            - clearbans --> مسح المظورين
-            - clearmutes  --> مسح الكتم
-            - help --> لعرض قائمة الاوامر
-            **تمت برمجة هذا البوت بواسطة فريق fallt للخدمات التقنية  يقوم بتامين المجموعات ويتيح لك فرصة تحكم افضل فيها.. تواصل مع tarek2016r للمزيد من التفاصيل ** 
-            """
+        الأوامر المتاحة:
+        - getid --> لجلب معرف المستخدم عن طريق الرد عليه أو ذكره
+        - ban [user_id] --> لحظر المستخدم
+        - unban [user_id] --> لرفع الحظر عن المستخدم
+        - mute --> لكتم المجموعة
+        - unmute --> لإلغاء الكتم عن المجموعة
+        - checkban [user_id] --> للتحقق من حظر المستخدم
+        - checkmute --> للتحقق من حالة الكتم في المجموعة
+        - listbans --> عرض قائمة المحظورين
+        - listmutes --> عرض قائمة المجموعات المكتمة
+        - clearbans --> مسح جميع الحظورات
+        - clearmutes --> مسح جميع حالات الكتم
+        - help --> لعرض قائمة الأوامر
+        """
         reply_message = commands_list.strip()
+
     else:
-        pass
-        #reply_message = 'Invalid command. Type "help" to view available commands.'
-    '''else:
-        pass
-        #reply_message = 'You do not have permission to use this bot.'''
+        reply_message = "الأمر غير معروف. استخدم 'help' لعرض الأوامر المتاحة."
 
     line_bot_api.reply_message(event.reply_token, TextSendMessage(text=reply_message))
 
 def ban_user(user_id):
     BANNED_USERS.add(user_id)
 
+
 def unban_user(user_id):
     BANNED_USERS.discard(user_id)
+
 
 def mute_group(group_id):
     MUTED_GROUPS.add(group_id)
 
+
 def unmute_group(group_id):
     MUTED_GROUPS.discard(group_id)
 
+
 def check_ban(reply_token, user_id):
     if user_id in BANNED_USERS:
-        reply_message = 'The user is banned.'
+        reply_message = "المستخدم محظور."
     else:
-        reply_message = 'The user is not banned.'
-
+        reply_message = "المستخدم غير محظور."
     line_bot_api.reply_message(reply_token, TextSendMessage(text=reply_message))
+
 
 def check_mute(reply_token, group_id):
     if group_id in MUTED_GROUPS:
-        reply_message = 'The group is muted.'
+        reply_message = "المجموعة مكتومة."
     else:
-        reply_message = 'The group is not muted.'
-
+        reply_message = "المجموعة غير مكتومة."
     line_bot_api.reply_message(reply_token, TextSendMessage(text=reply_message))
+
+
+def clear_bans():
+    BANNED_USERS.clear()
+
+
+def clear_mutes():
+    MUTED_GROUPS.clear()
 
 def clear_bans():
     BANNED_USERS.clear()
