@@ -9,8 +9,8 @@ import os
 app = Flask(__name__)
 
 # Replace with your Channel Access Token and Channel Secret
-CHANNEL_ACCESS_TOKEN = "Unf0b9ICHqvFgfhblpqW57DPTAJ2jCHnzZcyKEjvKVr1iTg1Ct2mgvBvm/hZCCVGirwsfoUarTU3LfEQfWnRJnmbR+blfUCgWo9mfeDCTKr7aSBad4kEWpESvSS5GcuoljPlHdfp7+CXkfXsxkAimwdB04t89/1O/w1cDnyilFU="
-CHANNEL_SECRET = "5f5fcbbef8fde3cc12ed90bf01642f35"
+CHANNEL_ACCESS_TOKEN = "41lmIdGnP32N0MWpuVJXr7aTocMO7hasTb9+fdUofzl6PTsT/FrGfEiRZrfDUNYkirwsfoUarTU3LfEQfWnRJnmbR+blfUCgWo9mfeDCTKo4BWBBw6R3vde0eX/gbPhMOUfqKtnGMrrnxgbGGD+3owdB04t89/1O/w1cDnyilFU="
+CHANNEL_SECRET = "dc70a952e203aae722b4e1d22e62452d"
 
 if CHANNEL_SECRET is None or CHANNEL_ACCESS_TOKEN is None:
     print('Specify LINE_CHANNEL_SECRET and LINE_CHANNEL_ACCESS_TOKEN as environment variables.')
@@ -81,7 +81,7 @@ def handle_message(event):
     except LineBotApiError as e:
         reply_message = f"خطأ أثناء جلب معلومات المستخدم: {str(e)}"
         line_bot_api.reply_message(event.reply_token, TextSendMessage(text=reply_message))
-        return
+        pass
 
     # تخزين المستخدم في قاعدة البيانات
     store_user(user_id, display_name)
