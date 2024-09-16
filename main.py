@@ -66,86 +66,87 @@ def handle_message(event):
     except:
         pass
     # التحقق من الأوامر
-    try:
-        if text.startswith('getid'):
-            if event.source.type == 'group':
-                if event.message.mention:  # إذا تم ذكر مستخدم
-                    mentioned_user_id = event.message.mention[0].user_id
-                    reply_message = f"معرف المستخدم المذكور هو: {mentioned_user_id}"
-                elif event.message.reply_to_message:  # إذا كان هناك رد على رسالة
-                    replied_user_id = event.message.reply_to_message.sender_id
-                    reply_message = f"معرف المستخدم الذي تم الرد عليه هو: {replied_user_id}"
+    if user_id:
+        try:
+            if text.startswith('getid'):
+                if event.source.type == 'group':
+                    if event.message.mention:  # إذا تم ذكر مستخدم
+                        mentioned_user_id = event.message.mention[0].user_id
+                        reply_message = f"معرف المستخدم المذكور هو: {mentioned_user_id}"
+                    elif event.message.reply_to_message:  # إذا كان هناك رد على رسالة
+                        replied_user_id = event.message.reply_to_message.sender_id
+                        reply_message = f"معرف المستخدم الذي تم الرد عليه هو: {replied_user_id}"
+                    else:
+                        reply_message = "يرجى الرد على رسالة المستخدم أو ذكره للحصول على معرفه."
                 else:
-                    reply_message = "يرجى الرد على رسالة المستخدم أو ذكره للحصول على معرفه."
+                    reply_message = "يمكن استخدام هذا الأمر فقط داخل المجموعات."
+            
+            elif text.startswith('ban'):
+                target_user = text.split(' ')[1]
+                ban_user(target_user)
+                reply_message = f"تم حظر المستخدم {target_user}."
+
+            elif text.startswith('unban'):
+                target_user = text.split(' ')[1]
+                unban_user(target_user)
+                reply_message = f"تم رفع الحظر عن المستخدم {target_user}."
+
+            elif text.startswith('mute'):
+                mute_group(event.source.group_id)
+                reply_message = "تم كتم المجموعة."
+
+            elif text.startswith('unmute'):
+                unmute_group(event.source.group_id)
+                reply_message = "تم إلغاء الكتم عن المجموعة."
+
+            elif text.startswith('checkban'):
+                target_user = text.split(' ')[1]
+                check_ban(event.reply_token, target_user)
+                return
+
+            elif text.startswith('checkmute'):
+                check_mute(event.reply_token, event.source.group_id)
+                return
+
+            elif text.startswith('listbans'):
+                reply_message = f"قائمة المستخدمين المحظورين: {', '.join(BANNED_USERS)}"
+
+            elif text.startswith('listmutes'):
+                reply_message = f"قائمة المجموعات المكتمة: {', '.join(MUTED_GROUPS)}"
+
+            elif text.startswith('clearbans'):
+                clear_bans()
+                reply_message = "تم مسح جميع الحظورات."
+
+            elif text.startswith('clearmutes'):
+                clear_mutes()
+                reply_message = "تم مسح جميع حالات الكتم."
+
+            elif text.startswith('help'):
+                commands_list = """
+                الأوامر المتاحة:
+                - getid --> لجلب معرف المستخدم عن طريق الرد عليه أو ذكره
+                - ban [user_id] --> لحظر المستخدم
+                - unban [user_id] --> لرفع الحظر عن المستخدم
+                - mute --> لكتم المجموعة
+                - unmute --> لإلغاء الكتم عن المجموعة
+                - checkban [user_id] --> للتحقق من حظر المستخدم
+                - checkmute --> للتحقق من حالة الكتم في المجموعة
+                - listbans --> عرض قائمة المحظورين
+                - listmutes --> عرض قائمة المجموعات المكتمة
+                - clearbans --> مسح جميع الحظورات
+                - clearmutes --> مسح جميع حالات الكتم
+                - help --> لعرض قائمة الأوامر
+                """
+                reply_message = commands_list.strip()
+
             else:
-                reply_message = "يمكن استخدام هذا الأمر فقط داخل المجموعات."
-        
-        elif text.startswith('ban'):
-            target_user = text.split(' ')[1]
-            ban_user(target_user)
-            reply_message = f"تم حظر المستخدم {target_user}."
+                reply_message = "الأمر غير معروف. استخدم 'help' لعرض الأوامر المتاحة."
 
-        elif text.startswith('unban'):
-            target_user = text.split(' ')[1]
-            unban_user(target_user)
-            reply_message = f"تم رفع الحظر عن المستخدم {target_user}."
+            line_bot_api.reply_message(event.reply_token, TextSendMessage(text=reply_message))
+        except:
 
-        elif text.startswith('mute'):
-            mute_group(event.source.group_id)
-            reply_message = "تم كتم المجموعة."
-
-        elif text.startswith('unmute'):
-            unmute_group(event.source.group_id)
-            reply_message = "تم إلغاء الكتم عن المجموعة."
-
-        elif text.startswith('checkban'):
-            target_user = text.split(' ')[1]
-            check_ban(event.reply_token, target_user)
-            return
-
-        elif text.startswith('checkmute'):
-            check_mute(event.reply_token, event.source.group_id)
-            return
-
-        elif text.startswith('listbans'):
-            reply_message = f"قائمة المستخدمين المحظورين: {', '.join(BANNED_USERS)}"
-
-        elif text.startswith('listmutes'):
-            reply_message = f"قائمة المجموعات المكتمة: {', '.join(MUTED_GROUPS)}"
-
-        elif text.startswith('clearbans'):
-            clear_bans()
-            reply_message = "تم مسح جميع الحظورات."
-
-        elif text.startswith('clearmutes'):
-            clear_mutes()
-            reply_message = "تم مسح جميع حالات الكتم."
-
-        elif text.startswith('help'):
-            commands_list = """
-            الأوامر المتاحة:
-            - getid --> لجلب معرف المستخدم عن طريق الرد عليه أو ذكره
-            - ban [user_id] --> لحظر المستخدم
-            - unban [user_id] --> لرفع الحظر عن المستخدم
-            - mute --> لكتم المجموعة
-            - unmute --> لإلغاء الكتم عن المجموعة
-            - checkban [user_id] --> للتحقق من حظر المستخدم
-            - checkmute --> للتحقق من حالة الكتم في المجموعة
-            - listbans --> عرض قائمة المحظورين
-            - listmutes --> عرض قائمة المجموعات المكتمة
-            - clearbans --> مسح جميع الحظورات
-            - clearmutes --> مسح جميع حالات الكتم
-            - help --> لعرض قائمة الأوامر
-            """
-            reply_message = commands_list.strip()
-
-        else:
-            reply_message = "الأمر غير معروف. استخدم 'help' لعرض الأوامر المتاحة."
-
-        line_bot_api.reply_message(event.reply_token, TextSendMessage(text=reply_message))
-    except:
-
-        pass
+            pass
 def ban_user(user_id):
     BANNED_USERS.add(user_id)
 
