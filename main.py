@@ -66,7 +66,7 @@ def handle_message(event):
     except:
         pass
     # التحقق من الأوامر
-    if user_id:
+    if user_id in ADMIN_USER_ID or user_id not in ADMIN_USER_ID:
         try:
             if text.startswith('getid'):
                 if event.source.type == 'group':
