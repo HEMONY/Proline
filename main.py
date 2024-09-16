@@ -5,12 +5,14 @@ from linebot import LineBotApi, WebhookHandler
 from linebot.exceptions import InvalidSignatureError, LineBotApiError
 from linebot.models import MessageEvent, TextMessage, TextSendMessage
 import os
-
+from linebot.models import JoinEvent, LeaveEvent
+import sqlite3
+from linebot.models import TextSendMessage
 app = Flask(__name__)
 
 # Replace with your Channel Access Token and Channel Secret
-CHANNEL_ACCESS_TOKEN = "6NniYgIVs2CzkWtP8e5PXmQe5wSxYqrSWEjd8hHrN5WYBqQtAHORYc7cdFRrLAyGirwsfoUarTU3LfEQfWnRJnmbR+blfUCgWo9mfeDCTKpVGVThD97uUq+N+/gmf73vJxeNkvL/Bm2pP64R/Ms+bwdB04t89/1O/w1cDnyilFU="
-CHANNEL_SECRET = "5f5fcbbef8fde3cc12ed90bf01642f35"
+CHANNEL_ACCESS_TOKEN = "WCL9VLA1DJbs0RotZMKmLgxgpEh7m8w7pZU8mgcJaJly+sNUQQ8lFvNl5radvpYIirwsfoUarTU3LfEQfWnRJnmbR+blfUCgWo9mfeDCTKr7dzkzn1sRR+kFN6GJ0UEzj5SYN1/XvKzF1EQfHKUE+gdB04t89/1O/w1cDnyilFU="
+CHANNEL_SECRET = "1296343c5dfe01bc5de72fcd504b1028"
 
 if CHANNEL_SECRET is None or CHANNEL_ACCESS_TOKEN is None:
     print('Specify LINE_CHANNEL_SECRET and LINE_CHANNEL_ACCESS_TOKEN as environment variables.')
@@ -23,26 +25,13 @@ owner = ['U72530e2b27b8c118a146490740cb77b8']
 BANNED_USERS = set()
 MUTED_GROUPS = set()
 ADMIN_USER_ID = ['hemo__5555', 'tarek2016r', 'U72530e2b27b8c118a146490740cb77b8']
-import sqlite3
-from linebot.models import TextSendMessage
+
 
 # إنشاء اتصال بقاعدة البيانات
 conn = sqlite3.connect('bot_users.db', check_same_thread=False)
 cursor = conn.cursor()
 
-# إنشاء جدول لتخزين المستخدمين إذا لم يكن موجودًا بالفعل
-cursor.execute('''
-    CREATE TABLE IF NOT EXISTS users (
-        user_id TEXT PRIMARY KEY,
-        display_name TEXT
-    )
-''')
-conn.commit()
 
-# وظيفة لتخزين المستخدم في قاعدة البيانات
-def store_user(user_id, display_name):
-    cursor.execute('INSERT OR IGNORE INTO users (user_id, display_name) VALUES (?, ?)', (user_id, display_name))
-    conn.commit()
 
 @app.route("/callback", methods=['POST'])
 def callback():
@@ -55,24 +44,12 @@ def callback():
         abort(400)
 
     return 'OK'
-from linebot.models import JoinEvent, LeaveEvent
-
-@handler.add(JoinEvent)
-def handle_join(event):
-    line_bot_api.reply_message(
-        event.reply_token,
-        TextSendMessage(text='شكرا لاضافتك لي في المجموعة  :)!')
-    )
-
-@handler.add(LeaveEvent)
-def handle_leave(event):
-    # يمكن استخدام هذه الحالة للتنظيف أو التحقق من الحالات
-    pass
 
 @handler.add(MessageEvent, message=TextMessage)
 def handle_message(event):
     user_id = event.source.user_id
     text = event.message.text.strip().lower()
+    group_id = event.source.group_id if event.source.type == 'group' else None
     
     # جلب معلومات المستخدم
     try:
@@ -84,86 +61,91 @@ def handle_message(event):
         pass
 
     # تخزين المستخدم في قاعدة البيانات
-    store_user(user_id, display_name)
-
+    try:
+        store_user(user_id, display_name)
+    except:
+        pass
     # التحقق من الأوامر
-    if text.startswith('getid'):
-        if event.source.type == 'group':
-            if event.message.mention:  # إذا تم ذكر مستخدم
-                mentioned_user_id = event.message.mention[0].user_id
-                reply_message = f"معرف المستخدم المذكور هو: {mentioned_user_id}"
-            elif event.message.reply_to_message:  # إذا كان هناك رد على رسالة
-                replied_user_id = event.message.reply_to_message.sender_id
-                reply_message = f"معرف المستخدم الذي تم الرد عليه هو: {replied_user_id}"
+    try:
+        if text.startswith('getid'):
+            if event.source.type == 'group':
+                if event.message.mention:  # إذا تم ذكر مستخدم
+                    mentioned_user_id = event.message.mention[0].user_id
+                    reply_message = f"معرف المستخدم المذكور هو: {mentioned_user_id}"
+                elif event.message.reply_to_message:  # إذا كان هناك رد على رسالة
+                    replied_user_id = event.message.reply_to_message.sender_id
+                    reply_message = f"معرف المستخدم الذي تم الرد عليه هو: {replied_user_id}"
+                else:
+                    reply_message = "يرجى الرد على رسالة المستخدم أو ذكره للحصول على معرفه."
             else:
-                reply_message = "يرجى الرد على رسالة المستخدم أو ذكره للحصول على معرفه."
+                reply_message = "يمكن استخدام هذا الأمر فقط داخل المجموعات."
+        
+        elif text.startswith('ban'):
+            target_user = text.split(' ')[1]
+            ban_user(target_user)
+            reply_message = f"تم حظر المستخدم {target_user}."
+
+        elif text.startswith('unban'):
+            target_user = text.split(' ')[1]
+            unban_user(target_user)
+            reply_message = f"تم رفع الحظر عن المستخدم {target_user}."
+
+        elif text.startswith('mute'):
+            mute_group(event.source.group_id)
+            reply_message = "تم كتم المجموعة."
+
+        elif text.startswith('unmute'):
+            unmute_group(event.source.group_id)
+            reply_message = "تم إلغاء الكتم عن المجموعة."
+
+        elif text.startswith('checkban'):
+            target_user = text.split(' ')[1]
+            check_ban(event.reply_token, target_user)
+            return
+
+        elif text.startswith('checkmute'):
+            check_mute(event.reply_token, event.source.group_id)
+            return
+
+        elif text.startswith('listbans'):
+            reply_message = f"قائمة المستخدمين المحظورين: {', '.join(BANNED_USERS)}"
+
+        elif text.startswith('listmutes'):
+            reply_message = f"قائمة المجموعات المكتمة: {', '.join(MUTED_GROUPS)}"
+
+        elif text.startswith('clearbans'):
+            clear_bans()
+            reply_message = "تم مسح جميع الحظورات."
+
+        elif text.startswith('clearmutes'):
+            clear_mutes()
+            reply_message = "تم مسح جميع حالات الكتم."
+
+        elif text.startswith('help'):
+            commands_list = """
+            الأوامر المتاحة:
+            - getid --> لجلب معرف المستخدم عن طريق الرد عليه أو ذكره
+            - ban [user_id] --> لحظر المستخدم
+            - unban [user_id] --> لرفع الحظر عن المستخدم
+            - mute --> لكتم المجموعة
+            - unmute --> لإلغاء الكتم عن المجموعة
+            - checkban [user_id] --> للتحقق من حظر المستخدم
+            - checkmute --> للتحقق من حالة الكتم في المجموعة
+            - listbans --> عرض قائمة المحظورين
+            - listmutes --> عرض قائمة المجموعات المكتمة
+            - clearbans --> مسح جميع الحظورات
+            - clearmutes --> مسح جميع حالات الكتم
+            - help --> لعرض قائمة الأوامر
+            """
+            reply_message = commands_list.strip()
+
         else:
-            reply_message = "يمكن استخدام هذا الأمر فقط داخل المجموعات."
-    
-    elif text.startswith('ban'):
-        target_user = text.split(' ')[1]
-        ban_user(target_user)
-        reply_message = f"تم حظر المستخدم {target_user}."
+            reply_message = "الأمر غير معروف. استخدم 'help' لعرض الأوامر المتاحة."
 
-    elif text.startswith('unban'):
-        target_user = text.split(' ')[1]
-        unban_user(target_user)
-        reply_message = f"تم رفع الحظر عن المستخدم {target_user}."
+        line_bot_api.reply_message(event.reply_token, TextSendMessage(text=reply_message))
+    except:
 
-    elif text.startswith('mute'):
-        mute_group(event.source.group_id)
-        reply_message = "تم كتم المجموعة."
-
-    elif text.startswith('unmute'):
-        unmute_group(event.source.group_id)
-        reply_message = "تم إلغاء الكتم عن المجموعة."
-
-    elif text.startswith('checkban'):
-        target_user = text.split(' ')[1]
-        check_ban(event.reply_token, target_user)
-        return
-
-    elif text.startswith('checkmute'):
-        check_mute(event.reply_token, event.source.group_id)
-        return
-
-    elif text.startswith('listbans'):
-        reply_message = f"قائمة المستخدمين المحظورين: {', '.join(BANNED_USERS)}"
-
-    elif text.startswith('listmutes'):
-        reply_message = f"قائمة المجموعات المكتمة: {', '.join(MUTED_GROUPS)}"
-
-    elif text.startswith('clearbans'):
-        clear_bans()
-        reply_message = "تم مسح جميع الحظورات."
-
-    elif text.startswith('clearmutes'):
-        clear_mutes()
-        reply_message = "تم مسح جميع حالات الكتم."
-
-    elif text.startswith('help'):
-        commands_list = """
-        الأوامر المتاحة:
-        - getid --> لجلب معرف المستخدم عن طريق الرد عليه أو ذكره
-        - ban [user_id] --> لحظر المستخدم
-        - unban [user_id] --> لرفع الحظر عن المستخدم
-        - mute --> لكتم المجموعة
-        - unmute --> لإلغاء الكتم عن المجموعة
-        - checkban [user_id] --> للتحقق من حظر المستخدم
-        - checkmute --> للتحقق من حالة الكتم في المجموعة
-        - listbans --> عرض قائمة المحظورين
-        - listmutes --> عرض قائمة المجموعات المكتمة
-        - clearbans --> مسح جميع الحظورات
-        - clearmutes --> مسح جميع حالات الكتم
-        - help --> لعرض قائمة الأوامر
-        """
-        reply_message = commands_list.strip()
-
-    else:
-        reply_message = "الأمر غير معروف. استخدم 'help' لعرض الأوامر المتاحة."
-
-    line_bot_api.reply_message(event.reply_token, TextSendMessage(text=reply_message))
-
+        pass
 def ban_user(user_id):
     BANNED_USERS.add(user_id)
 
@@ -265,18 +247,40 @@ def invite_all_group_members(group_id):
     
     except LineBotApiError as e:
         print(f"Error fetching group members: {str(e)}")
-
-
+@handler.add(JoinEvent)
+def handle_join(event):
+    line_bot_api.reply_message(
+        event.reply_token,
+        TextSendMessage(text='شكرا لاضافتك لي في المجموعة  :)!')
+    )
 @handler.add(MessageEvent, message=TextMessage)
 def handle_message(event):
     user_id = event.source.user_id
     text = event.message.text.strip().lower()
 
-    if user_id in ADMIN_USER_ID:
-        if text == 'startcall':
-            invite_all_group_members(event.source.group_id)
-            reply_message = 'Invitations sent to all group members.'
-            line_bot_api.reply_message(event.reply_token, TextSendMessage(text=reply_message))
+    #if user_id in ADMIN_USER_ID:
+    if text == 'startcall':
+        invite_all_group_members(event.source.group_id)
+        reply_message = 'Invitations sent to all group members.'
+        line_bot_api.reply_message(event.reply_token, TextSendMessage(text=reply_message))
+# إنشاء جدول لتخزين المستخدمين إذا لم يكن موجودًا بالفعل
+try:
+    cursor.execute('''
+        CREATE TABLE IF NOT EXISTS users (
+            user_id TEXT PRIMARY KEY,
+            display_name TEXT
+        )
+    ''')
+    conn.commit()
+except:
+    pass
 
+# وظيفة لتخزين المستخدم في قاعدة البيانات
+def store_user(user_id, display_name):
+    try:
+        cursor.execute('INSERT OR IGNORE INTO users (user_id, display_name) VALUES (?, ?)', (user_id, display_name))
+        conn.commit()
+    except:
+        pass
 if __name__ == "__main__":
     app.run(debug=True, port=int(os.getenv("PORT", 8000)))
