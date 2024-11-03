@@ -9,7 +9,7 @@ import os
 app = Flask(__name__)
 line_bot_api = LineBotApi(os.getenv('LINE_CHANNEL_ACCESS_TOKEN'))
 handler = WebhookHandler(os.getenv('LINE_CHANNEL_SECRET'))
-openai.api_key = "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"
+openai.api_key = os.getenv("OPENAI_API_KEY")
 
 # الكلمة المفتاحية المطلوبة
 KEYWORD = "fallt"
