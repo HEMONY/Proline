@@ -1,3 +1,3 @@
 line-bot-sdk
 flask
---upgrade openai
+openai==0.28.0
