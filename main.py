@@ -26,13 +26,16 @@ def get_chatgpt_response(user_message):
 # استقبال الرسائل من LINE
 @app.route("/callback", methods=['POST'])
 def callback():
-    signature = request.headers['X-Line-Signature']
+    signature = request.headers.get('X-Line-Signature')
     body = request.get_data(as_text=True)
+    print("Signature:", signature)
+    print("Body:", body)
     try:
         handler.handle(body, signature)
     except InvalidSignatureError:
         abort(400)
     return 'OK'
+
 
 # التعامل مع الرسائل النصية
 @handler.add(MessageEvent, message=TextMessage)
